@@ -16,7 +16,7 @@ $config = array(
     'height'         => 200,
     'outDir'         => '../output/gdbrute/',
     'compare'        => '../wrigley_field.jpg',
-    'iterations'     => 10000000,
+    'iterations'     => 100000,
     'dumpImageEvery' => 500,
 );
 
@@ -28,7 +28,7 @@ $logFile = fopen($logDir . '/data.log', 'w+') or exit('No access to log director
 // Grab the control image for comparison
 $controlImage = imagecreatefromjpeg($config['compare']);
 
-// Start with a blank slate
+// Start with a blank slate - image with a white background
 $newImage = imagecreatetruecolor($config['width'], $config['height']);
 $white = imagecolorallocate($newImage, 255, 255, 255);
 imagefill($newImage, 0, 0, $white);
@@ -54,9 +54,11 @@ for ($iterationCount=0; $iterationCount<$config['iterations'];$iterationCount++)
         $absX = abs($x1 - $x2);
         $absY = abs($y1 - $y2);
 
-        print ($absX + $absY) .'<'. (sqrt($difference)/7) . PHP_EOL;
+        $diameter = ($absX * 2) + ($absY * 2);
 
-    } while(($absX + $absY) > (sqrt($difference)/7)); // Lets keep sensible sizes
+        print $diameter .'<'. (sqrt($difference)/7) . PHP_EOL;
+
+    } while($diameter > (sqrt($difference)/7)); // Lets keep sensible sizes
 
     // Draw the shape on the candidate image
     $color = imagecolorallocatealpha($testImage, rand(0, 255), rand(0, 255), rand(0, 255), rand(0, 127));
@@ -71,7 +73,8 @@ for ($iterationCount=0; $iterationCount<$config['iterations'];$iterationCount++)
             PHP_EOL);
 
     if ($newDifference < $difference) {
-        // The candidate was deemed an improvement
+        // The candidate is deemed an improvement
+        // Update the difference value and best-match image
         $difference = $newDifference;
         $newImage = imagecreatetruecolor($config['width'], $config['height']);
         imagecopy($newImage, $testImage, 0, 0, 0, 0, $config['width'], $config['height']);
